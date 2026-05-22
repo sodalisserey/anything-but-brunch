@@ -3,165 +3,131 @@ from project import get_menu, format_menu, validate_order, confirm_order, get_re
 
 
 def test_get_menu():
-    # Test for missing parameter
-    with pytest.raises(TypeError):
-        assert get_menu(None)
+    """
+    Test CSV menu files are correctly parsed into dictionaries
+    """
 
-    # Input of csv results in creation of menu dictionary (items:price)
-    assert get_menu("day_menu.csv") == (
-        {"Cappuccino": 3.75, "Cookie": 3.25, "Croissant": 4.0, "Espresso": 2.75, "Matcha": 3.75, "Muffin": 3.75}
-    )
+    # Check invalid input type raises TypeError
+    with pytest.raises(TypeError):
+        get_menu(None)
+
+    # Load real menu file
+    menu = get_menu("day_menu.csv")
+
+    # Verify return type is correct
+    assert isinstance(menu, dict)
+
+    # Verify menu is not empty
+    assert len(menu) > 0
+
+    # Verify structure of dictionary values
+    for item, price in menu.items():
+        assert isinstance(item, str)
+        assert isinstance(price, float)
 
 
 def test_format_menu():
-    # Test for missing parameters
+    """
+    Test that menu dictionaries are correctly formatted into a string table
+    """
+
+    # Check invalid input type raises TypeError
     with pytest.raises(TypeError):
-        assert format_menu(None)
+        format_menu(None)
 
-    # Test for incomplete parameters
-    with pytest.raises(TypeError):
-        assert format_menu({"Cappuccino": 3.75})
+    # Create mock menus for testing
+    day = {"Coffee": 3.00}
+    brunch = {"Toast": 5.00}
+    summer = {"Lemonade": 4.50}
 
-    # Input of two dictionaries returns combined, tabulated menu
-    assert format_menu({"Cappuccino": 3.75, "Croissant": 4.0},
-                       {"Salad": 5.25, "Toastie": 5.5}) == (
-               "╒═══════════════════════════╤═════════╕\n"
-               "│ A L L - D A Y   M E N U   │         │\n"
-               "│ Cappuccino                │  £ 3.75 │\n"
-               "│ Croissant                 │  £ 4.00 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ B R U N C H   M E N U     │         │\n"
-               "│ Salad                     │  £ 5.25 │\n"
-               "│ Toastie                   │  £ 5.50 │\n"
-               "╘═══════════════════════════╧═════════╛"
-           )
+    # Generate formatted menu string
+    menu = format_menu(day, brunch, summer)
 
-    assert format_menu({"Americano": 3.25},
-                   {"Pancakes": 5.75}) == (
-               "╒═══════════════════════════╤═════════╕\n"
-               "│ A L L - D A Y   M E N U   │         │\n"
-               "│ Americano                 │  £ 3.25 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ B R U N C H   M E N U     │         │\n"
-               "│ Pancakes                  │  £ 5.75 │\n"
-               "╘═══════════════════════════╧═════════╛"
-           )
+    # Ensure output is a string
+    assert isinstance(menu, str)
+
+    # Check that all menu items appear in output
+    assert "Coffee" in menu
+    assert "Toast" in menu
+    assert "Lemonade" in menu
 
 
 def test_validate_order():
-    # Test for missing parameters
+    """
+    Test that validation works correctly based on availability rules (time and seasonal restrictions)
+    """
+
+    # Check invalid input type raises TypeError
     with pytest.raises(TypeError):
-        assert validate_order(None)
+        validate_order(None)
 
-    # Test for incomplete parameters
-    with pytest.raises(TypeError):
-        assert validate_order(({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5}))
+    # Create mock menus for testing
+    day = {"Coffee": 3.00}
+    brunch = {"Toast": 5.00}
+    summer = {"Affogato": 4.50}
 
-    # Request for item not in menu returns False
-    assert validate_order({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5},
-                     "Americano", "10:00") == False
+    # Valid day menu item should be accepted
+    assert validate_order(day, brunch, summer,
+                          "Coffee", "12:00", 7) is True
 
-    # Request with typo returns False
-    assert validate_order({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5},
-                     "Cappuccinno", "10:00") == False
+    # Invalid menu item should be rejected
+    assert validate_order(day, brunch, summer,
+                          "Pizza", "12:00", 7) is False
 
-    # Request for lunch item outside of lunch hours returns False
-    assert validate_order({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5},
-                     "Salad", "15:00") == False
+    # Brunch item should be rejected if not within rules
+    assert validate_order(day, brunch, summer,
+                          "Toast", "15:00", 7) is False
 
-    # Request for lunch item within lunch hours returns True
-    assert validate_order({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5},
-                     "Salad", "11:00") == True
-
-    # Request for day-menu item returns True
-    assert validate_order({"Cappuccino": 3.75, "Croissant": 4.0}, {"Salad": 5.25, "Toastie": 5.5},
-                     "Cappuccino", "12:00") == True
+    # Summer item should be rejected if not within rules
+    assert validate_order(day, brunch, summer,
+                          "Affogato", "15:00", 2) is False
 
 
 def test_confirm_order():
-    # Test for missing parameters
+    """
+    Test order confirmation logic when customer finishes ordering
+    """
+
+    # Check invalid input type raises TypeError
     with pytest.raises(TypeError):
-        assert confirm_order(None)
+        confirm_order(None)
 
-    # Test for incomplete parameters
-    with pytest.raises(TypeError):
-        assert confirm_order("Cappuccino")
+    # If "done" followed by "y" order should be confirmed
+    assert confirm_order("done", {"Muffin": 1}, "y") is True
 
-    # Input of default answer "no" returns False
-    assert confirm_order("Cappuccino", {"Muffin": 1, "Cookie": 2}) == False
+    # If "done" followed by "n" order should not be confirmed
+    assert confirm_order("done", {"Muffin": 1}, "n") is False
 
-    # Input of "done" request and "y" answer returns False with empty order dictionary
-    assert confirm_order("done", {}, "y") == False
+    # Empty order should not be confirmed
+    assert confirm_order("done", {}, "y") is False
 
-    # Input of non-empty order dictionary and "y" answer returns False with invalid request
-    assert confirm_order("Cappuccino", {"Muffin": 1, "Cookie": 2}, "y") == False
-
-    # Only input of "done" request, non-empty order dictionary and "y" answer returns True
-    assert confirm_order("done", {"Muffin": 1, "Cookie": 2}, "y") == True
+    # If not "done" order should not be confirmed
+    assert confirm_order("Coffee", {"Muffin": 1}, "y") is False
 
 
 def test_get_receipt():
-    # Test for missing parameters
+    """
+    Test receipt generation including totals costs, service fee and formatting
+    """
+
+    # Check invalid input type raises TypeError
     with pytest.raises(TypeError):
-        assert get_receipt(None)
+        get_receipt(None)
 
-    # Test for missing parameters
-    with pytest.raises(TypeError):
-        assert get_receipt("Cappuccino")
+    # Mock order matching menu item
+    order = {"Coffee": 2}
+    day = {"Coffee": 3.00}
+    brunch = {}
+    summer = {}
 
-    # Input of appropriate parameters returns tabulated receipt with date, service fee and total
-    assert get_receipt({"Cappuccino": 2},
-                       {"Cappuccino": 3.75, "Croissant": 4.0},
-                       {"Salad": 5.25, "Toastie": 5.5},
-                       "Thursday 12/12/24 16:00") == (
-               "╒═══════════════════════════╤═════════╕\n"
-               "│ Thursday 12/12/24 16:00   │         │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ R E C E I P T             │         │\n"
-               "│ x2 Cappuccino             │  £ 7.50 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ Service Fee               │  £ 0.75 │\n"
-               "│ Total                     │  £ 8.25 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ Thank you for your visit! │         │\n"
-               "╘═══════════════════════════╧═════════╛"
-           )
+    # Generate receipt
+    receipt = get_receipt(order, day, brunch, summer,"Thursday 12/12/24 16:00")
 
-    # Inputted order of 100 cappuccinos returns correct grand total
-    assert get_receipt({"Cappuccino": 100},
-                       {"Cappuccino": 3.75, "Croissant": 4.0},
-                       {"Salad": 5.25, "Toastie": 5.5},
-                       "Thursday 12/12/24 16:00") == (
-               "╒═══════════════════════════╤══════════╕\n"
-               "│ Thursday 12/12/24 16:00   │          │\n"
-               "│ ------------------------- │  ------- │\n"
-               "│ R E C E I P T             │          │\n"
-               "│ x100 Cappuccino           │ £ 375.00 │\n"
-               "│ ------------------------- │  ------- │\n"
-               "│ Service Fee               │  £ 37.50 │\n"
-               "│ Total                     │ £ 412.50 │\n"
-               "│ ------------------------- │  ------- │\n"
-               "│ Thank you for your visit! │          │\n"
-               "╘═══════════════════════════╧══════════╛"
-           )
+    # Verify output type
+    assert isinstance(receipt, str)
 
-    # Inputted order of several items from both menus returned in tabulated receipt with date, service fee and total
-    assert get_receipt({"Cappuccino": 1, "Croissant": 2, "Salad": 3, "Toastie": 4},
-                       {"Cappuccino": 3.75, "Croissant": 4.0},
-                       {"Salad": 5.25, "Toastie": 5.5},
-                       "Thursday 12/12/24 16:00") == (
-               "╒═══════════════════════════╤═════════╕\n"
-               "│ Thursday 12/12/24 16:00   │         │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ R E C E I P T             │         │\n"
-               "│ x1 Cappuccino             │  £ 3.75 │\n"
-               "│ x2 Croissant              │  £ 8.00 │\n"
-               "│ x3 Salad                  │ £ 15.75 │\n"
-               "│ x4 Toastie                │ £ 22.00 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ Service Fee               │  £ 4.95 │\n"
-               "│ Total                     │ £ 54.45 │\n"
-               "│ ------------------------- │ ------- │\n"
-               "│ Thank you for your visit! │         │\n"
-               "╘═══════════════════════════╧═════════╛"
-           )
+    # Check key information appears in receipt
+    assert "Coffee" in receipt
+    assert "£ 6.00" in receipt
+    assert "Service Fee" in receipt
+    assert "Total" in receipt

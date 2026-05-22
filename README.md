@@ -1,29 +1,74 @@
 # Anything But Brunch
-### _[Video Demo](https://youtu.be/OvBxFkCCr18)_
-### _Description:_
-Anything But Brunch is a café simulation that allows users to order items at any time of day, as long as they're not from the brunch menu (only available between 10:00-13:00). The programme displays menu items, prompts users for their order and once confirmed, displays a receipt to the user.
 
-### _Main File & Functions:_
-The programme uses the tabulate module to display a formatted menu, followed by a receipt of ordered items. The datetime module is used to determine the time of order, thereby allowing the programme to ensure brunch orders can only be placed between 10:00-13:00.
+### _Description_
+Anything But Brunch is a 24-hour café simulation run by a domineering clock. It presents users with three different menus, allowing them to order items only when they are available according to the time of day or season. 
+- Brunch menu items are only available between 10:00-13:00
+- Summer menu items are only available from June to September
+- Standard menu items are available at all times
+  
+After the user enters their items and confirms that the order is complete, an itemised receipt is generated, showing the date and time of purchase, all ordered items, a 10% service fee charge and the total cost.
 
-All five functions can be found in 'project.py', which also contains a main function that commits the programme to a while loop. This loop begins when the user is prompted to input their order, and is concluded when valid order conditions are met.
+### _Features_
+- Dynamic menu availability based on real-world date and time
+- CSV menus for easy customisation
+- Formatted menus and receipts using tabulate
+- Unit testing with `pytest`
 
-#### **get_menu(csv_file)**
-uses csv.DictReader() to read menus inputted as csv files and returns them as dictionaries
-#### **format_menu(day_menu, brunch_menu)**
-receives menu dictionaries which are then combined, labelled and returned using tabulate()
-#### **validate_order(day_menu, brunch_menu, request, current_time)**
-validates each order request by matching it with items in either menus. If the request is a brunch item, the function checks current_time, determined by datetime.today(), for validity within brunch hours. Error messages are displayed if no matches are found, or if a brunch item is requested outside valid hours. If all conditions are met, the function returns order_valid as True, which prompts main() to append order dictionary with the requested item and its quantity (cumulative), thereby also restarting the while loop
-#### **confirm_order(request, order)**
-detects "done" in request and displays order dictionary as a list, before prompting the user to confirm order via "yes". This returns order_confirmed as True, which allows the programme to break out of the while loop in main(). If the answer to confirm order is not "yes", or if the order dictionary is empty, an error message is displayed and the while loop restarts until conditions are met
-#### **get_receipt(order, day_menu, brunch_menu, current_datetime)**
-calculates the price of each item type (item * quantity), then the sum of all items, inclusive of a 10% service fee. The total cost is presented in a tabulated receipt with current date/time
+### _Main File_
+#### ```src/anything_but_brunch.py``` <br>
+Contains the main programme logic, including all five core functions and the main() function.
+The programme runs inside a while loop that:
+1. Prompts the user for an order
+2. Validates the request
+3. Updates the order dictionary
+4. Confirms completion
+5. Generates a receipt
 
-### _Supplementary Files & Functions:_
-- **"test_project.py"** contains functions that test all five functions in project.py via pytest
-- **"day_menu.csv"** contains non-brunch menu items and prices (customisable)
-- **"brunch_menu.csv"** contains brunch menu items and prices (customisable)
-- **"requirements.txt"** contains all pip-installable libraries
+### _Functions_
+#### ``` get_menu(menu_csv) ``` <br>
+Reads menu data from CSV files using `csv.DictReader()` and returns a dictionary containing menu items and prices.
 
-### _Further Work:_
-The scope of this programme can be expanded to enable users to remove items from their order. An additional function that prompts payment from users may also add a dash of complexity and realism to this programme.
+#### ```format_menu(standard_menu, brunch_menu, summer_menu)``` <br>
+Compiles menu dictionaries before formatting them using `tabulate`.
+
+#### ```validate_order(standard_menu, brunch_menu, summer_menu, request, current_time)``` <br>
+Validates user order requests by checking whether:
+- Item exists;
+- Brunch menu items are ordered during valid hours
+- Summer menu items are ordered during valid months
+
+If valid, the function returns `True`, allowing the item to be added to the order dictionary.
+
+#### ```confirm_order(request, order, answer)``` <br>
+Checks whether the user entered `"done"` and prompts order confirmation
+If the user confirms with `"yes"`, the function returns `True`, allowing the programme to exit the ordering loop.
+
+#### ```get_receipt(standard_menu, brunch_menu, summer_menu, order, current_datetime)``` <br>
+Calculates:
+- Item totals
+- 10% service fee
+- Grand total
+  
+Then generates a receipt containing the ordering date and time, formatted using `tabulate`.
+
+### _Supplementary Files_
+#### ```tests/test_anything_but_brunch.py``` <br>
+Contains unit tests for all five functions using pytest.
+
+#### ```data/day_menu.csv``` <br>
+Contains standard menu items with prices.
+
+#### ```data/brunch_menu.csv``` <br>
+Contains brunch menu items with prices.
+
+#### ```data/summer_menu.csv``` <br>
+Contains summer menu items with prices.
+
+#### ```requirements.txt``` <br>
+Lists all required installable ```Python``` packages.
+
+### _Future Improvements_
+Potential future features include
+- Removing items from an order
+- Removing service fee charge from receipt
+- GUI or web interface implementation

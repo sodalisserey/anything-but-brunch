@@ -9,7 +9,7 @@ def main():
     customer to order, validates availability of item requested, confirms finished order and prints a receipt
     """
     # Load menus from csv files
-    day_menu = get_menu("day_menu.csv")
+    day_menu = get_menu("standard_menu.csv")
     brunch_menu = get_menu("brunch_menu.csv")
     summer_menu = get_menu("summer_menu.csv")
 

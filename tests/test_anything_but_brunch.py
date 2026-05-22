@@ -12,7 +12,7 @@ def test_get_menu():
         get_menu(None)
 
     # Load real menu file
-    menu = get_menu("day_menu.csv")
+    menu = get_menu("standard_menu.csv")
 
     # Verify return type is correct
     assert isinstance(menu, dict)

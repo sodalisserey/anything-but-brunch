@@ -1,5 +1,5 @@
 import pytest
-from project import get_menu, format_menu, validate_order, confirm_order, get_receipt
+from anything_but_brunch import get_menu, format_menu, validate_order, confirm_order, get_receipt
 
 
 def test_get_menu():

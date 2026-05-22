@@ -1,6 +1,7 @@
 from tabulate import tabulate
 from datetime import datetime
 import csv
+import pathlib
 
 def main():
     """
@@ -58,7 +59,8 @@ def get_menu(menu_csv: str) -> dict[str, float]:
     """
     menu = {}
 
-    with open(menu_csv) as file:
+    menu_path = pathlib.Path("data", menu_csv)
+    with open(menu_path) as file:
         reader = csv.DictReader(file)
         for row in reader:
             item = row["item"]
